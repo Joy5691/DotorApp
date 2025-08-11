@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Doctor Appointment - Interactive Wireframe</title>
+<style>
+  :root{
+    --bg:#f4f6f8;
+    --card:#fff;
+    --muted:#9aa4ad;
+    --accent:#2f9e44;
+    --danger:#e74c3c;
+    --outline:#d8dde3;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:#1f2933;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* App container to simulate mobile */
+  .app {
+    max-width:420px;
+    margin:20px auto;
+    min-height:600px;
+    padding-bottom:40px;
+  }
+
+  .screen {
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:0 8px 22px rgba(18,26,34,0.06);
+    padding:16px;
+    margin-bottom:18px;
+    display:none;
+    border:1px solid var(--outline);
+  }
+  .screen.active{display:block}
+
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  h1{font-size:20px;margin:0}
+  .muted{color:var(--muted); font-size:13px}
+
+  input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="time"], textarea {
+    width:100%;
+    padding:10px 12px;
+    margin-top:8px;
+    border-radius:10px;
+    border:1px solid var(--outline);
+    background: #fff;
+    font-size:14px;
+  }
+  label{display:block; margin-top:12px; font-weight:600; font-size:13px}
+
+  button {
+    display:inline-block;
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    background:var(--accent);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    font-size:14px;
+  }
+  button.ghost{
+    background:transparent;
+    color:var(--accent);
+    border:1px solid var(--accent);
+  }
+  button.small{padding:6px 8px; font-size:13px}
+  button.danger{background:var(--danger)}
+
+  /* Doctor card wireframe */
+  .doctor-card {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:12px;
+    border-radius:12px;
+    background: linear-gradient(180deg,#fff,#fbfdff);
+    border:1px dashed var(--outline);
+    margin-top:12px;
+  }
+  .img-box{
+    width:72px;height:72px;background:#d2d6db;border-radius:8px;flex:0 0 72px;
+    display:flex;align-items:center;justify-content:center;color:#6d7378;font-size:12px;
+  }
+  .doc-info{flex:1}
+  .doc-name{font-weight:700}
+  .doc-meta{color:var(--muted); font-size:13px; margin-top:4px}
+
+  .actions{display:flex;gap:8px;margin-top:10px}
+
+  /* Dashboard patient card */
+  .card{
+    padding:12px;
+    border-radius:12px;
+    background:#fff;
+    border:1px dashed var(--outline);
+    margin-top:12px;
+  }
+  .row{display:flex;gap:10px; align-items:center}
+  .space{flex:1}
+
+  /* calendar */
+  .calendar {
+    margin-top:12px;
+    border-radius:10px;
+    border:1px dashed var(--outline);
+    padding:10px;
+    background:#fff;
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+    margin-top:8px;
+  }
+  .cal-day{
+    padding:8px;border-radius:8px;text-align:center;font-size:13px;border:1px solid transparent;
+    background:#fbfdff;color:#222;cursor:pointer;
+  }
+  .cal-day.disabled{opacity:0.38;cursor:default}
+  .cal-day.selected{background:var(--accent);color:white}
+
+  /* time slots */
+  .times {
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+  }
+  .slot {
+    padding:8px 10px; border-radius:8px; border:1px dashed var(--outline);
+    background:#fff; cursor:pointer; font-size:13px;
+  }
+  .slot.taken{opacity:0.4; cursor:default; text-decoration:line-through}
+  .slot.selected{background:var(--accent); color:white; border:none}
+
+  /* helper */
+  .center{display:flex;align-items:center;justify-content:center}
+  .right{display:flex;align-items:center;justify-content:flex-end}
+  .searchbar{
+    display:flex;gap:8px;margin-top:12px;
+  }
+  .searchbar input{flex:1}
+  .small-muted{color:var(--muted);font-size:12px;margin-top:8px}
+  .link{color:var(--accent); cursor:pointer; text-decoration:underline; font-size:13px}
+  .appointments-list{margin-top:10px}
+  .appt-item{padding:10px;border-radius:10px;border:1px dashed var(--outline);margin-bottom:8px;background:#fff}
+  footer{font-size:12px;color:var(--muted); margin-top:6px; text-align:center}
+  @media (max-width:420px){
+    .app{margin:8px}
+    .img-box{width:64px;height:64px}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- PUBLIC DASHBOARD (default landing) -->
+  <div id="publicDashboard" class="screen active">
+    <div class="topbar">
+      <h1>Doctors</h1>
+      <div>
+        <span class="muted">Guest</span>
+        <button class="small ghost" onclick="showScreen('loginScreen')">Login</button>
+      </div>
+    </div>
+
+    <div class="searchbar">
+      <input type="text" id="publicSearch" placeholder="Search doctors or specialty..." oninput="renderDoctorList()" />
+      <button class="small" onclick="renderDoctorList()">Search</button>
+    </div>
+
+    <div id="doctorListPublic"></div>
+
+    <footer>Open app demo · wireframe-style · click a doctor's "Make Appointment" to start</footer>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="screen">
+    <div class="topbar">
+      <h1>Login</h1>
+      <div class="right"><button class="small ghost" onclick="showScreen('publicDashboard')">Cancel</button></div>
+    </div>
+
+    <label for="loginEmail">Email</label>
+    <input id="loginEmail" type="email" placeholder="you@example.com" />
+
+    <label for="loginPassword">Password</label>
+    <input id="loginPassword" type="password" placeholder="password" />
+
+    <div class="row" style="margin-top:12px">
+      <button onclick="login()">Login</button>
+      <div class="space"></div>
+      <div class="muted small-muted">No account? <span class="link" onclick="showScreen('registerScreen')">Register</span></div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerScreen" class="screen">
+    <div class="topbar">
+      <h1>Register</h1>
+      <div class="right"><button class="small ghost" onclick="showScreen('publicDashboard')">Cancel</button></div>
+    </div>
+
+    <label>Name</label>
+    <input id="regName" type="text" placeholder="Full name" />
+    <label>Email</label>
+    <input id="regEmail" type="email" placeholder="you@example.com" />
+    <label>Date of birth</label>
+    <input id="regDob" type="date" />
+    <label>Password</label>
+    <input id="regPass" type="password" />
+    <label>Re-enter password</label>
+    <input id="regPass2" type="password" />
+
+    <div style="margin-top:12px">
+      <button onclick="register()">Create account</button>
+      <button class="small ghost" onclick="showScreen('loginScreen')">Already have account</button>
+    </div>
+  </div>
+
+  <!-- USER DASHBOARD (after login) -->
+  <div id="userDashboard" class="screen">
+    <div class="topbar">
+      <h1>Dashboard</h1>
+      <div>
+        <span id="dashUserName" class="muted">User</span>
+        <button class="small ghost" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="card" id="patientCard">
+      <div style="display:flex; gap:12px; align-items:center">
+        <div class="img-box" style="width:64px;height:64px">YOU</div>
+        <div>
+          <div style="font-weight:700" id="userNameShow">Name</div>
+          <div class="muted" id="userEmailShow">email</div>
+          <div class="muted" id="userDobShow">DOB</div>
+        </div>
+      </div>
+      <div class="small-muted">Your profile shown here. Make appointments below.</div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Search doctors</label>
+      <div class="searchbar">
+        <input id="userSearch" type="text" placeholder="Search doctors..." oninput="renderDoctorList(true)" />
+        <button class="small" onclick="renderDoctorList(true)">Search</button>
+      </div>
+    </div>
+
+    <div id="doctorListUser"></div>
+
+    <div style="margin-top:12px">
+      <h3 style="margin:0">Appointments</h3>
+      <div id="appointmentsList" class="appointments-list"></div>
+      <div class="small-muted" style="margin-top:8px">You can make multiple bookings. Booked slots disappear for everyone in this demo session.</div>
+    </div>
+  </div>
+
+  <!-- BOOKING SCREEN (Calendly-style) -->
+  <div id="bookingScreen" class="screen">
+    <div class="topbar">
+      <h1 id="bookingTitle">Book</h1>
+      <div class="right"><button class="small ghost" onclick="cancelBooking()">Back</button></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; gap:12px; align-items:center">
+        <div class="img-box" id="bookingDocImg" style="width:64px;height:64px">DR</div>
+        <div>
+          <div style="font-weight:700" id="bookingDocName">Dr. Name</div>
+          <div class="muted" id="bookingDocSpec">Specialty</div>
+          <div class="muted" id="bookingDocFee" style="margin-top:6px"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <label>Select date</label>
+        <div class="calendar" id="miniCalendar">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <button class="small ghost" onclick="calPrev()">◀</button>
+            <div id="calTitle" style="font-weight:700"></div>
+            <button class="small ghost" onclick="calNext()">▶</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label>Available time slots (15-min)</label>
+          <div id="timeSlots" class="times"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patient details after selecting a slot -->
+    <div id="patientFormWrap" class="card" style="display:none">
+      <h3 style="margin:6px 0">Patient details</h3>
+      <label><input id="isPatientYou" type="checkbox" onchange="togglePatientSelf()" /> I'm the patient</label>
+
+      <label>Name</label>
+      <input id="patientName" type="text" placeholder="Patient full name" />
+
+      <label>Relation (if not you)</label>
+      <input id="patientRelation" type="text" placeholder="e.g. Father, Daughter, Self" />
+
+      <label>Phone</label>
+      <input id="patientPhone" type="text" placeholder="Phone number" />
+
+      <div style="display:flex; gap:8px; margin-top:12px">
+        <button onclick="confirmBooking()">Confirm booking</button>
+        <button class="small ghost" onclick="cancelPatientForm()">Cancel</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* ---------- In-memory data ---------- */
+const doctors = [
+  { id: "d1", name: "Dr. John Doe", specialty: "Cardiologist", fee: "₹800" },
+  { id: "d2", name: "Dr. Maya Sen", specialty: "Dermatologist", fee: "₹600" },
+  { id: "d3", name: "Dr. Amir Khan", specialty: "Dentist", fee: "₹500" },
+];
+
+// appointments: array of {id, doctorId, date(YYYY-MM-DD), time(HH:MM), patientName, relation, phone, bookedByEmail}
+let appointments = [];
+
+/* user session */
+let currentUser = null; // {name,email,dob}
+let intendedDoctor = null; // doctorId when trying to book while guest
+
+/* booking UI state */
+let bookingState = {
+  doctorId: null,
+  selectedDate: null, // YYYY-MM-DD
+  selectedTime: null  // "HH:MM"
+};
+
+/* calendar state (shows 30 days window) */
+const today = new Date();
+let calStart = new Date(today); // start of displayed month window; we'll show 30 days from here
+
+/* ---------- Utility helpers ---------- */
+function fmtDateISO(d){ // Date -> YYYY-MM-DD
+  const y=d.getFullYear(), m=(d.getMonth()+1).toString().padStart(2,'0'), day=d.getDate().toString().padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function fmtDateNice(iso){
+  const d=new Date(iso);
+  return d.toLocaleDateString();
+}
+function timeToMinutes(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function minutesToTime(min){ const h=Math.floor(min/60); const m=min%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
+function shortTime(t){ // "HH:MM" -> "h:MM AM"
+  const [hh,mm]=t.split(':').map(Number);
+  const d=new Date(); d.setHours(hh,mm);
+  return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+}
+
+/* ---------- Screen navigation ---------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ---------- Render doctors list ---------- */
+function renderDoctorList(userView=false){
+  const q = (userView ? document.getElementById('userSearch').value : document.getElementById('publicSearch').value).toLowerCase().trim();
+  const container = document.getElementById(userView ? 'doctorListUser' : 'doctorListPublic');
+  container.innerHTML = '';
+  const list = doctors.filter(d => !q || d.name.toLowerCase().includes(q) || d.specialty.toLowerCase().includes(q));
+  list.forEach(d=>{
+    const div = document.createElement('div');
+    div.className = 'doctor-card';
+    div.innerHTML = `
+      <div class="img-box">IMG</div>
+      <div class="doc-info">
+        <div class="doc-name">${d.name}</div>
+        <div class="doc-meta">${d.specialty} · <span class="muted">${d.fee}</span></div>
+        <div class="actions">
+          <button onclick="startBooking('${d.id}')">Make Appointment</button>
+          <button class="ghost small" onclick="viewDoctor('${d.id}')">View</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  if(list.length===0){
+    container.innerHTML = `<div class="small-muted" style="margin-top:12px">No doctors found.</div>`;
+  }
+}
+
+/* ---------- when guest clicks Make Appointment ---------- */
+function startBooking(docId){
+  if(!currentUser){
+    intendedDoctor = docId;
+    showScreen('loginScreen');
+    return;
+  }
+  openBookingForDoctor(docId);
+}
+
+/* ---------- view doctor quick ---------- */
+function viewDoctor(docId){
+  const d = doctors.find(x=>x.id===docId);
+  if(!d) return;
+  alert(`${d.name}\n${d.specialty}\nFee: ${d.fee}\n\nThis is a wireframe preview.`);
+}
+
+/* ---------- open booking UI ---------- */
+function openBookingForDoctor(docId){
+  bookingState = {doctorId: docId, selectedDate: null, selectedTime: null};
+  const d = doctors.find(x=>x.id===docId);
+  document.getElementById('bookingTitle').textContent = `Book — ${d.name}`;
+  document.getElementById('bookingDocName').textContent = d.name;
+  document.getElementById('bookingDocSpec').textContent = d.specialty;
+  document.getElementById('bookingDocFee').textContent = `Fee: ${d.fee}`;
+
+  // show calendar and times
+  initCalendar();
+  renderTimeSlots();
+  hidePatientForm();
+  showScreen('bookingScreen');
+}
+
+/* ---------- calendar generation (30-day window) ---------- */
+function initCalendar(){
+  // calStart is already defined; we'll generate next 30 days
+  const grid = document.getElementById('calGrid');
+  const title = document.getElementById('calTitle');
+  grid.innerHTML = '';
+  title.textContent = `${calStart.toLocaleString(undefined,{month:'short'})} ${calStart.getFullYear()}`;
+
+  for(let i=0;i<30;i++){
+    const d = new Date(calStart);
+    d.setDate(calStart.getDate()+i);
+    const iso = fmtDateISO(d);
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'cal-day';
+    dayDiv.textContent = `${d.getDate()}`;
+    // disable past days (before today)
+    if(d < new Date(today.getFullYear(), today.getMonth(), today.getDate())){
+      dayDiv.classList.add('disabled');
+    } else {
+      dayDiv.onclick = ()=> selectDate(iso, dayDiv);
+    }
+    grid.appendChild(dayDiv);
+  }
+}
+
+/* navigation of calendar window */
+function calPrev(){
+  calStart.setDate(calStart.getDate()-7);
+  initCalendar();
+}
+function calNext(){
+  calStart.setDate(calStart.getDate()+7);
+  initCalendar();
+}
+
+function selectDate(iso, el){
+  // clear prev selected
+  document.querySelectorAll('#calGrid .cal-day').forEach(d=>d.classList.remove('selected'));
+  el.classList.add('selected');
+  bookingState.selectedDate = iso;
+  renderTimeSlots();
+}
+
+/* ---------- generate 15-min slots between 09:00 - 17:00 ---------- */
+function generateSlots(){
+  const startMin = 9*60;
+  const endMin = 17*60; // exclusive end
+  const interval = 15;
+  const slots = [];
+  for(let m=startMin; m<endMin; m+=interval){ slots.push(minutesToTime(m)); }
+  return slots;
+}
+
+function isSlotTaken(doctorId, date, time){
+  return appointments.some(a => a.doctorId===doctorId && a.date===date && a.time===time);
+}
+
+/* render time slots for selected date and doctor */
+function renderTimeSlots(){
+  const container = document.getElementById('timeSlots');
+  container.innerHTML = '';
+  const slots = generateSlots();
+  if(!bookingState.selectedDate){
+    container.innerHTML = `<div class="small-muted">Select a date to see available time slots</div>`;
+    return;
+  }
+  slots.forEach(t=>{
+    const btn = document.createElement('div');
+    btn.className = 'slot';
+    if(isSlotTaken(bookingState.doctorId, bookingState.selectedDate, t)){
+      btn.classList.add('taken');
+    } else {
+      btn.onclick = ()=> selectSlot(t, btn);
+    }
+    btn.textContent = shortTime(t);
+    if(bookingState.selectedTime === t) btn.classList.add('selected');
+    container.appendChild(btn);
+  });
+}
+
+/* when user selects a time */
+function selectSlot(time, el){
+  // unselect older
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  bookingState.selectedTime = time;
+  // open patient form
+  showPatientForm();
+}
+
+/* patient form logic */
+function showPatientForm(){
+  document.getElementById('patientFormWrap').style.display = 'block';
+  document.getElementById('isPatientYou').checked = true;
+  togglePatientSelf();
+}
+function hidePatientForm(){
+  document.getElementById('patientFormWrap').style.display = 'none';
+}
+function cancelPatientForm(){
+  bookingState.selectedTime = null;
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+  hidePatientForm();
+}
+
+/* fill patient fields if user */
+function togglePatientSelf(){
+  const isYou = document.getElementById('isPatientYou').checked;
+  if(isYou && currentUser){
+    document.getElementById('patientName').value = currentUser.name;
+    document.getElementById('patientPhone').value = currentUser.phone || "";
+    document.getElementById('patientRelation').value = "Self";
+    document.getElementById('patientName').disabled = true;
+    document.getElementById('patientPhone').disabled = !!currentUser.phone ? true : false;
+    document.getElementById('patientRelation').disabled = true;
+  } else {
+    document.getElementById('patientName').disabled = false;
+    document.getElementById('patientPhone').disabled = false;
+    document.getElementById('patientRelation').disabled = false;
+    if(!isYou){
+      document.getElementById('patientName').value = "";
+      document.getElementById('patientRelation').value = "";
+      document.getElementById('patientPhone').value = "";
+    }
+  }
+}
+
+/* confirm booking after filling patient details */
+function confirmBooking(){
+  if(!bookingState.selectedDate || !bookingState.selectedTime){
+    alert("Select a date and time first.");
+    return;
+  }
+  const patientName = document.getElementById('patientName').value.trim();
+  const relation = document.getElementById('patientRelation').value.trim();
+  const phone = document.getElementById('patientPhone').value.trim();
+  if(!patientName || !phone){
+    alert("Please provide patient name and phone.");
+    return;
+  }
+  // double-check slot still free
+  if(isSlotTaken(bookingState.doctorId, bookingState.selectedDate, bookingState.selectedTime)){
+    alert("Sorry that slot was just taken. Choose another.");
+    renderTimeSlots();
+    hidePatientForm();
+    return;
+  }
+
+  // save appointment
+  const id = 'a'+Math.random().toString(36).slice(2,9);
+  appointments.push({
+    id, doctorId: bookingState.doctorId, date: bookingState.selectedDate, time: bookingState.selectedTime,
+    patientName, relation, phone, bookedByEmail: currentUser.email
+  });
+
+  // after booking return to dashboard
+  alert("Appointment confirmed!");
+  showDashboard();
+}
+
+/* ---------- Dashboard rendering ---------- */
+function renderDashboardAppointments(){
+  const list = document.getElementById('appointmentsList');
+  list.innerHTML = '';
+  const userAppts = appointments.filter(a=>a.bookedByEmail === currentUser.email);
+  if(userAppts.length===0){
+    list.innerHTML = `<div class="small-muted" style="margin-top:8px">No appointments yet.</div>`;
+    return;
+  }
+  userAppts.sort((a,b)=> (a.date > b.date) ? 1 : -1);
+  userAppts.forEach(a=>{
+    const doc = doctors.find(d=>d.id===a.doctorId);
+    const div = document.createElement('div');
+    div.className = 'appt-item';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700">${doc.name}</div>
+          <div class="muted">${doc.specialty}</div>
+        </div>
+        <div class="muted">${fmtDateNice(a.date)}<div style="font-weight:700">${shortTime(a.time)}</div></div>
+      </div>
+      <div style="margin-top:8px" class="muted">Patient: ${a.patientName} · ${a.relation} · ${a.phone}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* ---------- Login / Register / Logout ---------- */
+function register(){
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const dob = document.getElementById('regDob').value;
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  if(!name || !email || !dob || !pass) { alert("Please fill all fields"); return; }
+  if(pass !== pass2) { alert("Passwords don't match"); return; }
+  // create user object (no real auth)
+  currentUser = {name, email, dob, phone: ""};
+  intendedDoctor && openBookingForDoctor(intendedDoctor);
+  intendedDoctor = null;
+  showDashboard();
+}
+
+function login(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if(!email || !pass){ alert("Enter email and password (demo accepts any)"); return; }
+  // For demo: login simply creates a user if none
+  currentUser = { name: "Demo User", email, dob: "1990-01-01", phone: ""};
+  if(intendedDoctor){ openBookingForDoctor(intendedDoctor); intendedDoctor=null; return; }
+  showDashboard();
+}
+
+function logout(){
+  if(!confirm("Logout from this demo session?")) return;
+  currentUser = null;
+  showScreen('publicDashboard');
+  renderDoctorList(false);
+}
+
+/* ---------- show dashboard after login ---------- */
+function showDashboard(){
+  // set user info
+  document.getElementById('dashUserName').textContent = currentUser.name;
+  document.getElementById('userNameShow').textContent = currentUser.name;
+  document.getElementById('userEmailShow').textContent = currentUser.email;
+  document.getElementById('userDobShow').textContent = currentUser.dob;
+  showScreen('userDashboard');
+  renderDoctorList(true);
+  renderDashboardAppointments();
+}
+
+/* ---------- cancel booking flow (back) ---------- */
+function cancelBooking(){
+  bookingState = {doctorId:null, selectedDate:null, selectedTime:null};
+  hidePatientForm();
+  showDashboard();
+}
+
+/* ---------- initial rendering ---------- */
+(function init(){
+  // set calStart to today's date (month start makes no difference; we show 30 days)
+  calStart = new Date(today);
+  renderDoctorList(false);
+})();
+</script>
+
+</body>
+</html>
